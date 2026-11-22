@@ -1,56 +1,39 @@
-# Tiny Tapeout project information
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
-
-  # How many tiles your design occupies? A single tile is about 202x155 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2, 8x2, 3x4, 4x4, 5x4, 6x4 or 8x4
-
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
-
-  # List your project's source files here.
-  # Source files must be in ./src and you must list each source file separately, one per line.
-  # Don't forget to also update `PROJECT_SOURCES` in test/Makefile.
+  title: "Timed Protocol Sequencer"
+  author: "Kunal"
+  discord: ""
+  description: "A host-reloadable, cycle-timed pin sequencer with a 128-word instruction store."
+  language: "Verilog"
+  clock_hz: 24000000
+  tiles: "8x4"
+  top_module: "tt_um_kunal_timed_protocol_sequencer"
   source_files:
     - "project.v"
 
-# The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
-# This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
 pinout:
-  # Inputs
-  ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
-  ui[7]: ""
+  ui[0]: "I0: protocol input"
+  ui[1]: "I1: protocol input"
+  ui[2]: "I2: protocol input"
+  ui[3]: "I3: protocol input"
+  ui[4]: "H_CS_N: host SPI select, active low"
+  ui[5]: "H_SCK: host SPI clock"
+  ui[6]: "H_MOSI: host SPI data into chip"
+  ui[7]: "Host reserved: tie low"
+  uo[0]: "O0: protocol output"
+  uo[1]: "O1: protocol output"
+  uo[2]: "O2: protocol output"
+  uo[3]: "O3: protocol output"
+  uo[4]: "H_MISO: host SPI data out, dedicated push-pull"
+  uo[5]: "H_READY: host interface accepting frames"
+  uo[6]: "H_BUSY: sequencer running or waiting"
+  uo[7]: "H_IRQ: error pending or RX data available"
+  uio[0]: "P0: protocol I/O; example UART data, SPI SCK, I2C SDA"
+  uio[1]: "P1: protocol I/O; example SPI MOSI, I2C SCL"
+  uio[2]: "P2: protocol I/O; example SPI MISO"
+  uio[3]: "P3: protocol I/O; example SPI CS_N"
+  uio[4]: "P4: protocol I/O"
+  uio[5]: "P5: protocol I/O"
+  uio[6]: "P6: protocol I/O"
+  uio[7]: "P7: protocol I/O"
 
-  # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
-  uo[4]: ""
-  uo[5]: ""
-  uo[6]: ""
-  uo[7]: ""
-
-  # Bidirectional pins
-  uio[0]: ""
-  uio[1]: ""
-  uio[2]: ""
-  uio[3]: ""
-  uio[4]: ""
-  uio[5]: ""
-  uio[6]: ""
-  uio[7]: ""
-
-# Do not change!
 yaml_version: 6
