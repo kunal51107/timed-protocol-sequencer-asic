@@ -9,6 +9,8 @@ project:
   top_module: "tt_um_kunal_timed_protocol_sequencer"
   source_files:
     - "project.v"
+    - "sequencer_engine.v"
+    - "sequencer_fifo.v"
 
 pinout:
   ui[0]: "I0: protocol input"
