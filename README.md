@@ -1,42 +1,17 @@
-![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
+# 8x4 host-loaded UART bring-up
 
-# Tiny Tapeout Verilog Project Template
+This checkpoint keeps the full host SPI loader, 128 × 16 store and FIFO interface. Its temporary execution engine implements the Section 5 UART TX instruction subset. The complete frozen ISA is specified in SPEC.md.
 
-- [Read the documentation for project](docs/info.md)
+Assemble the reference image with `python tools/asm.py examples/tx.asm -o uart.bin`. The mask is 00 and the commit CRC is 7E24. The pin test loads all 128 words, checks the pipelined response, enqueues A5 and 5A, and measures every bit on P0 through the stop interval. Use `make -C test` with the template test requirements and Icarus installed.
 
-## What is Tiny Tapeout?
+The early experiment mapped 176,738.78 square micrometres of standard cells, of which 111,547.50 were sequential cells. This is a pre-placement estimate. Reproduction used Yosys 0.71+134, the IHP CMOS5L 1.20 V typical library at IHP-Open-PDK revision e73adb4045731ddec21634146d536380057f6a26, and the following Yosys commands with the library at cells.lib.
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
+```
+read_verilog src/project.v src/sequencer_fifo.v src/sequencer_engine.v
+synth -top tt_um_kunal_timed_protocol_sequencer -flatten -noabc
+dfflibmap -liberty cells.lib
+abc -liberty cells.lib
+stat -liberty cells.lib
+```
 
-To learn more and get started, visit https://tinytapeout.com.
-
-## Set up your Verilog project
-
-1. Add your Verilog files to the `src` folder.
-2. Edit the [info.yaml](info.yaml) and update information about your project, paying special attention to the `source_files` and `top_module` properties. If you are upgrading an existing Tiny Tapeout project, check out our [online info.yaml migration tool](https://tinytapeout.github.io/tt-yaml-upgrade-tool/).
-3. Edit [docs/info.md](docs/info.md) and add a description of your project.
-4. Adapt the testbench to your design. See [test/README.md](test/README.md) for more information.
-
-The GitHub action will automatically build the ASIC files using [LibreLane](https://www.zerotoasiccourse.com/terminology/librelane/).
-
-## Enable GitHub actions to build the results page
-
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
-
-## Resources
-
-- [FAQ](https://tinytapeout.com/faq/)
-- [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-- [Build your design locally](https://www.tinytapeout.com/guides/local-hardening/)
-
-## What next?
-
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@tinytapeout](https://twitter.com/tinytapeout)
-  - Bluesky [@tinytapeout.com](https://bsky.app/profile/tinytapeout.com)
+The 8x4 template baseline is commit 93919e278f5f75df80a59399fb68028e1ad75a70. The custom hardening target is 41.666 ns, corresponding to 24 MHz.

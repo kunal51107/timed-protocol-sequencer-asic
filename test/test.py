@@ -1,43 +1,38 @@
-# SPDX-FileCopyrightText: © 2024 Tiny Tapeout
-# SPDX-License-Identifier: Apache-2.0
-
+"""Decode the complete UART frame at the physical P0 driver."""
+from pathlib import Path
+import sys
 import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
+from host import Board
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools.asm import assemble
 
 
 @cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
-
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, unit="us")
-    cocotb.start_soon(clock.start())
-
-    # Reset
-    dut._log.info("Reset")
-    dut.ena.value = 1
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
-    dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
-    dut.rst_n.value = 1
-
-    dut._log.info("Test project behavior")
-
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
-
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
-
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
-
-    dut.ui_in.value = 255
-    dut.uio_in.value = 1
-    await ClockCycles(dut.clk, 1)
-    assert dut.uo_out.value == 0
-    assert dut.uio_oe.value == 0
+async def host_loaded_uart_tx(dut):
+    board = Board(dut)
+    await board.reset()
+    image = assemble((ROOT / "examples/tx.asm").read_text())
+    data = (0xA5, 0x5A)
+    await board.load(image, data)
+    assert board.oe == 1 and board.data == 1
+    for byte in data:
+        for _ in range(220):
+            if board.data == 0:
+                break
+            await board.tick()
+        else:
+            raise AssertionError("UART start bit missing")
+        levels = [0] + [byte >> i & 1 for i in range(8)]
+        for bit, width in zip(levels, [208, 208, 209] * 3):
+            for _ in range(width):
+                assert board.oe == 1 and board.data == bit
+                await board.tick()
+        for _ in range(209):
+            assert board.data == 1 and board.oe == 1
+            await board.tick()
+    for _ in range(24):
+        await board.tick()
+    assert board.out & 0xC0 == 0x40
+    assert board.pads() & 1
