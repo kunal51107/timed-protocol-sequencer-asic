@@ -43,7 +43,21 @@ VERILOG_SOURCES += $(CURDIR)/tb.v
 TOPLEVEL = tb
 
 # List test modules to run, separated by commas and without the .py suffix:
-COCOTB_TEST_MODULES = test
+ifeq ($(GATES),yes)
+COCOTB_TEST_MODULES = test,uart_tx
+else
+COCOTB_TEST_MODULES = test,uart_tx,protocols
+endif
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# Run the Python suites on each RTL invocation, including Tiny Tapeout CI.
+# The lockstep helper can skip when used independently; CI must have both tools.
+ifneq ($(GATES),yes)
+.PHONY: model-and-lockstep
+sim: model-and-lockstep
+model-and-lockstep:
+	@command -v iverilog >/dev/null && command -v vvp >/dev/null
+	cd "$(CURDIR)/.." && python -m pytest -q -rs tests
+endif

@@ -1,0 +1,26 @@
+.od 0
+HI 3
+HI 0
+LO 1
+LY 8
+PULL
+LX 8
+LO 3
+MARK
+bit: PER 24
+AT 2
+LO 0
+OUTH 1
+AT 14
+HI 0
+D 1
+INL 2
+DX bit
+PUSH
+DY more
+D 12
+HI 3
+HALT
+more: PULL
+LX 8
+J bit
