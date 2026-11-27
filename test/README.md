@@ -10,6 +10,6 @@ For gate-level simulation the Tiny Tapeout action supplies gate_level_netlist.v 
 
 ## Early measurements
 
-The UART bring-up commit mapped to 176738.78 square micrometres of standard cells and ran a host-loaded two-byte UART transmission before the remaining ISA was enabled. On the same synthesis recipe, the full engine mapped to 198046.37 square micrometres. Both estimates use Yosys 0.71+134, dfflibmap and ABC against the typical IHP CMOS5L 1.20 V library at IHP-Open-PDK commit e73adb4045731ddec21634146d536380057f6a26. Physical utilization, slack and violations must be taken from the final GDS job.
+The UART bring-up commit mapped to 176738.78 square micrometres of standard cells and ran a host-loaded two-byte UART transmission before the remaining ISA was enabled. On the same synthesis recipe, the complete implementation with a banked combinational instruction read and parallel byte CRC mapped to 201247.50 square micrometres, including 122178.07 for sequential elements. The simple indexed-read predecessor mapped to 198046.37 square micrometres. Both estimates use Yosys 0.71+134, dfflibmap and ABC against the typical IHP CMOS5L 1.20 V library at IHP-Open-PDK commit e73adb4045731ddec21634146d536380057f6a26. Physical utilization, slack and violations must be taken from the final GDS job.
 
 The earlier Milestone 2 run on main used a resolved 20 ns period. Its slow-corner setup slack was -6.170 ns. This branch uses 41.666 ns to verify the selected 24 MHz operating point.

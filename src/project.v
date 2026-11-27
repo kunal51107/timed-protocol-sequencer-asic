@@ -77,7 +77,24 @@ module tt_um_timed_protocol_sequencer(
     reg [15:0] crc;
     reg [15:0] imem [0:127];
     wire [6:0] pc;
-    wire [15:0] instruction = imem[pc];
+    // Share the low-address decode across all 16 banks. Each bank reduces
+    // eight gated words in parallel; the upper address selects one bank.
+    // IMEM remains a single-write flip-flop store with same-cycle fetch.
+    wire [7:0] row_select = 8'b00000001 << pc[2:0];
+    wire [15:0] bank_word [0:15];
+    genvar bank, bit_index, row;
+    generate
+        for (bank = 0; bank < 16; bank = bank + 1) begin: read_bank
+            for (bit_index = 0; bit_index < 16; bit_index = bit_index + 1) begin: column
+                wire [7:0] selected;
+                for (row = 0; row < 8; row = row + 1) begin: pick
+                    assign selected[row] = row_select[row] & imem[bank*8+row][bit_index];
+                end
+                assign bank_word[bank][bit_index] = |selected;
+            end
+        end
+    endgenerate
+    wire [15:0] instruction = bank_word[pc[6:3]];
     wire [3:0] tx_count, rx_count, next_tx, next_rx;
     wire [7:0] tx_head, rx_head, r, engine_errors;
     wire pull, push, halt, fatal;
@@ -152,13 +169,13 @@ module tt_um_timed_protocol_sequencer(
     function [15:0] crc_byte;
         input [15:0] seed;
         input [7:0] data;
-        integer n;
-        reg [15:0] acc;
+        // Parallel byte recurrence for x^16 + x^12 + x^5 + 1.
+        reg [7:0] feedback;
         begin
-            acc = seed ^ {data,8'h00};
-            for (n = 0; n < 8; n = n + 1)
-                acc = {acc[14:0],1'b0} ^ (acc[15] ? 16'h1021 : 16'h0000);
-            crc_byte = acc;
+            feedback = seed[15:8] ^ data;
+            feedback = feedback ^ {4'b0, feedback[7:4]};
+            crc_byte = {seed[7:0],8'b0} ^ {feedback[3:0],12'b0}
+                     ^ {3'b0,feedback,5'b0} ^ {8'b0,feedback};
         end
     endfunction
     integer i;
